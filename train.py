@@ -149,6 +149,8 @@ def main():
         device = torch.device('cuda', args.gpu_id)
         args.world_size = 1
         args.n_gpu = torch.cuda.device_count()
+        if args.n_gpu == 0:
+            device = torch.device('cpu')
     else:
         torch.cuda.set_device(args.local_rank)
         device = torch.device('cuda', args.local_rank)
