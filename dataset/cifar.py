@@ -49,7 +49,7 @@ def get_aptos(args, root):
     # Read the aptos training data
     train_data = []
     train_labels = []
-    i = 0
+    
     with open(os.path.join(aptos_dir, 'train_labels.csv')) as csv_file:
         reader = csv.DictReader(csv_file, delimiter=',')
 
@@ -61,9 +61,6 @@ def get_aptos(args, root):
             train_data.append(img_arr)
             train_labels.append(int(row.get('diagnosis')))
 
-            i += 1
-            if i>100:
-                break
 
     print('Training data is successfully loaded!')
 
@@ -79,7 +76,7 @@ def get_aptos(args, root):
     # Read the aptos test data
     test_data = []
     test_labels = []
-    i = 0
+    
     with open(os.path.join(aptos_dir, 'test_images.csv')) as csv_file:
         reader = csv.DictReader(csv_file, delimiter=',')
 
@@ -91,9 +88,6 @@ def get_aptos(args, root):
             test_data.append(img_arr)
             test_labels.append(0)
 
-            i += 1
-            if i>100:
-                break
 
     test_dataset = APTOS_SSL(test_data, test_labels, None, transform=transform_val)
     print('Testing data is successfully loaded!')
@@ -171,7 +165,7 @@ def x_u_split(args, labels):
     label_per_class = args.num_labeled // args.num_classes
     labels = np.array(labels)
     labeled_idx = []
-    # unlabeled data: all data (https://github.com/kekmodel/FixMatch-pytorch/issues/10)
+
     unlabeled_idx = np.array(range(len(labels)))
     for i in range(args.num_classes):
         idx = np.where(labels == i)[0]
@@ -246,11 +240,13 @@ class APTOS_SSL(object):
 
     def __getitem__(self, index):
         img, target = self.data[index], self.targets[index]
-        img = Image.fromarray(img)
+        # img = Image.fromarray(img)
+        img = Image.fromarray((img * 255).astype(np.uint8))
 
         if self.transform is not None:
             img = self.transform(img)
 
+        img = np.asarray(img/255.0)
         return img, target
 
     def __len__(self):
