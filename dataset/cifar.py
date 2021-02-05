@@ -253,6 +253,9 @@ class APTOS_SSL(object):
 
         return img, target
 
+    def __len__(self):
+        return len(self.targets)
+
 
 class CIFAR10SSL(datasets.CIFAR10):
     def __init__(self, root, indexs, train=True,
