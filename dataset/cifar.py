@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 # Train labels should be in the file train_labels.csv
 # There should be a file name test_images.csv
 # All these files/folders should be in aptos_dir
-aptos_dir = 'data/retinopathy/'
+# aptos_dir = 'data/retinopathy/'
+aptos_dir = '/content/gdrive/My Drive/retinopathy/'
 
 # computed the following from the training data
 aptos_mean = (0.46144922, 0.24728629, 0.08075682)
