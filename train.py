@@ -72,9 +72,9 @@ def main():
     parser.add_argument('--num-workers', type=int, default=4,
                         help='number of workers')
     parser.add_argument('--dataset', default='cifar10', type=str,
-                        choices=['cifar10', 'cifar100'],
+                        choices=['cifar10', 'cifar100', 'aptos'],
                         help='dataset name')
-    parser.add_argument('--num-labeled', type=int, default=4000,
+    parser.add_argument('--num-labeled', type=int, default=2000,
                         help='number of labeled data')
     parser.add_argument("--expand-labels", action="store_true",
                         help="expand labels to fit eval steps")
@@ -191,6 +191,16 @@ def main():
 
     elif args.dataset == 'cifar100':
         args.num_classes = 100
+        if args.arch == 'wideresnet':
+            args.model_depth = 28
+            args.model_width = 8
+        elif args.arch == 'resnext':
+            args.model_cardinality = 8
+            args.model_depth = 29
+            args.model_width = 64
+
+    elif args.dataset == 'aptos':
+        args.num_classes = 5
         if args.arch == 'wideresnet':
             args.model_depth = 28
             args.model_width = 8
