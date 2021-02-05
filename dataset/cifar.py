@@ -35,7 +35,7 @@ normal_std = (0.5, 0.5, 0.5)
 def get_aptos(args, root):
     transform_labeled = transforms.Compose([
         transforms.RandomHorizontalFlip(),
-        transforms.RandomCrop(size=(180, 150),
+        transforms.RandomCrop(size=(60, 50),
                               padding=int(64*0.125),
                               padding_mode='reflect'),
         transforms.ToTensor(),
@@ -57,7 +57,7 @@ def get_aptos(args, root):
             img_id = row.get('id_code')
             train_folder = os.path.join(aptos_dir, 'train_images')
             img = Image.open(os.path.join(train_folder, img_id + '.jpg'))
-            img_arr = np.asarray(img.resize((180, 150)))/255.0
+            img_arr = np.asarray(img.resize((60, 50)))/255.0
             train_data.append(img_arr)
             train_labels.append(int(row.get('diagnosis')))
 
@@ -65,14 +65,17 @@ def get_aptos(args, root):
             if i>100:
                 break
 
+    print('Training data is successfully loaded!')
+
     train_labeled_idxs, train_unlabeled_idxs = x_u_split(args, train_labels)
 
     train_labeled_dataset = APTOS_SSL(train_data, train_labels, train_labeled_idxs,  transform=transform_labeled)
 
+    print('Supervised and semisupervised split!')
+
     train_unlabeled_dataset = APTOS_SSL(train_data, train_labels, train_unlabeled_idxs, 
         transform=TransformFixMatch2(mean=aptos_mean, std=aptos_std))
 
-    print('Training data is successfully loaded!')
     # Read the aptos test data
     test_data = []
     test_labels = []
@@ -84,7 +87,7 @@ def get_aptos(args, root):
             img_id = row.get('id_code')
             test_folder = os.path.join(aptos_dir, 'test_images')
             img = Image.open(os.path.join(test_folder, img_id + '.jpg'))
-            img_arr = np.asarray(img.resize((180, 150)))/255.0
+            img_arr = np.asarray(img.resize((60, 50)))/255.0
             test_data.append(img_arr)
             test_labels.append(0)
 
@@ -211,12 +214,12 @@ class TransformFixMatch2(object):
     def __init__(self, mean, std):
         self.weak = transforms.Compose([
             transforms.RandomHorizontalFlip(),
-            transforms.RandomCrop(size=(180, 150),
+            transforms.RandomCrop(size=(60, 50),
                                   padding=int(64*0.125),
                                   padding_mode='reflect')])
         self.strong = transforms.Compose([
             transforms.RandomHorizontalFlip(),
-            transforms.RandomCrop(size=(180, 150),
+            transforms.RandomCrop(size=(60, 50),
                                   padding=int(64*0.125),
                                   padding_mode='reflect'),
             RandAugmentMC(n=2, m=10)])
