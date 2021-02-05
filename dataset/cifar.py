@@ -1,5 +1,7 @@
 import logging
 import math
+import os
+import csv
 
 import numpy as np
 from PIL import Image
@@ -9,6 +11,14 @@ from torchvision import transforms
 from .randaugment import RandAugmentMC
 
 logger = logging.getLogger(__name__)
+
+# Change this to the correct directory of aptos dataset
+# Training images should be in the folder train_images
+# and test images should be in the folder test_images
+# Train labels should be in the file train_labels.csv
+# There should be a file name test_images.csv
+# All these files/folders should be in aptos_dir
+aptos_dir = 'data/retinopathy/'
 
 # computed the following from the training data
 aptos_mean = (0.46144922, 0.24728629, 0.08075682)
@@ -34,21 +44,54 @@ def get_aptos(args, root):
         transforms.ToTensor(),
         transforms.Normalize(mean=aptos_mean, std=aptos_std)
     ])
-    # base_dataset = datasets.CIFAR10(root, train=True, download=True)
 
-    train_labeled_idxs, train_unlabeled_idxs = x_u_split(
-        args, base_dataset.targets)
+    # Read the aptos training data
+    train_data = []
+    train_labels = []
+    i = 0
+    with open(os.path.join(aptos_dir, 'train_labels.csv')) as csv_file:
+        reader = csv.DictReader(csv_file, delimiter=',')
 
-    train_labeled_dataset = CIFAR10SSL(
-        root, train_labeled_idxs, train=True,
-        transform=transform_labeled)
+        for row in reader:
+            img_id = row.get('id_code')
+            train_folder = os.path.join(aptos_dir, 'train_images')
+            img = Image.open(os.path.join(train_folder, img_id + '.jpg'))
+            img_arr = np.asarray(img.resize((180, 150)))/255.0
+            train_data.append(img_arr)
+            train_labels.append(int(row.get('diagnosis')))
 
-    train_unlabeled_dataset = CIFAR10SSL(
-        root, train_unlabeled_idxs, train=True,
-        transform=TransformFixMatch(mean=cifar10_mean, std=cifar10_std))
+            i += 1
+            if i>1000:
+                break
 
-    test_dataset = datasets.CIFAR10(
-        root, train=False, transform=transform_val, download=False)
+    train_labeled_idxs, train_unlabeled_idxs = x_u_split(args, train_labels)
+
+    train_labeled_dataset = APTOS_SSL(train_data, train_labels, train_labeled_idxs,  transform=transform_labeled)
+
+    train_unlabeled_dataset = APTOS_SSL(train_data, train_labels, train_unlabeled_idxs, 
+        transform=TransformFixMatch2(mean=aptos_mean, std=aptos_std))
+
+
+    # Read the aptos test data
+    test_data = []
+    test_labels = []
+    i = 0
+    with open(os.path.join(aptos_dir, 'test_images.csv')) as csv_file:
+        reader = csv.DictReader(csv_file, delimiter=',')
+
+        for row in reader:
+            img_id = row.get('id_code')
+            test_folder = os.path.join(aptos_dir, 'test_images')
+            img = Image.open(os.path.join(test_folder, img_id + '.jpg'))
+            img_arr = np.asarray(img.resize((180, 150)))/255.0
+            test_data.append(img_arr)
+            test_labels.append(0)
+
+            i += 1
+            if i>1000:
+                break
+
+    test_dataset = APTOS_SSL(test_data, test_labels, None, transform=transform_val)
 
     return train_labeled_dataset, train_unlabeled_dataset, test_dataset
 
@@ -127,7 +170,7 @@ def x_u_split(args, labels):
     unlabeled_idx = np.array(range(len(labels)))
     for i in range(args.num_classes):
         idx = np.where(labels == i)[0]
-        idx = np.random.choice(idx, label_per_class, False)
+        idx = np.random.choice(idx, label_per_class, True)
         labeled_idx.extend(idx)
     labeled_idx = np.array(labeled_idx)
     assert len(labeled_idx) == args.num_labeled
@@ -161,6 +204,49 @@ class TransformFixMatch(object):
         weak = self.weak(x)
         strong = self.strong(x)
         return self.normalize(weak), self.normalize(strong)
+
+class TransformFixMatch2(object):
+    def __init__(self, mean, std):
+        self.weak = transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(size=(180, 150),
+                                  padding=int(64*0.125),
+                                  padding_mode='reflect')])
+        self.strong = transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(size=(180, 150),
+                                  padding=int(64*0.125),
+                                  padding_mode='reflect'),
+            RandAugmentMC(n=2, m=10)])
+        self.normalize = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=mean, std=std)])
+
+    def __call__(self, x):
+        weak = self.weak(x)
+        strong = self.strong(x)
+        return self.normalize(weak), self.normalize(strong)
+
+
+class APTOS_SSL(object):
+    def __init__(self, train_data, train_labels, indexs, 
+                 transform=None):
+        self.transform = transform
+        self.data = np.array(train_data)
+        self.targets = np.array(train_labels) 
+
+        if indexs is not None:
+            self.data = self.data[indexs]
+            self.targets = self.targets[indexs]
+
+    def __getitem__(self, index):
+        img, target = self.data[index], self.targets[index]
+        img = Image.fromarray(img)
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        return img, target
 
 
 class CIFAR10SSL(datasets.CIFAR10):

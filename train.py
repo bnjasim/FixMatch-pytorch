@@ -214,6 +214,8 @@ def main():
     labeled_dataset, unlabeled_dataset, test_dataset = DATASET_GETTERS[args.dataset](
         args, './data')
 
+    print('Data read successfully!')
+
     train_sampler = RandomSampler if args.local_rank == -1 else DistributedSampler
 
     labeled_trainloader = DataLoader(
@@ -299,8 +301,7 @@ def main():
     logger.info(f"  Total optimization steps = {args.total_steps}")
 
     model.zero_grad()
-    # train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
-          model, optimizer, ema_model, scheduler, writer)
+    train(args, labeled_trainloader, unlabeled_trainloader, test_loader, model, optimizer, ema_model, scheduler, writer)
 
 
 def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
