@@ -62,7 +62,7 @@ def get_aptos(args, root):
             train_labels.append(int(row.get('diagnosis')))
 
             i += 1
-            if i>1000:
+            if i>100:
                 break
 
     train_labeled_idxs, train_unlabeled_idxs = x_u_split(args, train_labels)
@@ -72,7 +72,7 @@ def get_aptos(args, root):
     train_unlabeled_dataset = APTOS_SSL(train_data, train_labels, train_unlabeled_idxs, 
         transform=TransformFixMatch2(mean=aptos_mean, std=aptos_std))
 
-
+    print('Training data is successfully loaded!')
     # Read the aptos test data
     test_data = []
     test_labels = []
@@ -89,10 +89,11 @@ def get_aptos(args, root):
             test_labels.append(0)
 
             i += 1
-            if i>1000:
+            if i>100:
                 break
 
     test_dataset = APTOS_SSL(test_data, test_labels, None, transform=transform_val)
+    print('Testing data is successfully loaded!')
 
     return train_labeled_dataset, train_unlabeled_dataset, test_dataset
 
