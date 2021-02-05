@@ -31,11 +31,14 @@ cifar100_std = (0.2675, 0.2565, 0.2761)
 normal_mean = (0.5, 0.5, 0.5)
 normal_std = (0.5, 0.5, 0.5)
 
+# Resize Image
+h = 50
+w = 60
 
 def get_aptos(args, root):
     transform_labeled = transforms.Compose([
         transforms.RandomHorizontalFlip(),
-        transforms.RandomCrop(size=(60, 50),
+        transforms.RandomCrop(size=(h, w),
                               padding=int(64*0.125),
                               padding_mode='reflect'),
         transforms.ToTensor(),
@@ -57,12 +60,12 @@ def get_aptos(args, root):
             img_id = row.get('id_code')
             train_folder = os.path.join(aptos_dir, 'train_images')
             img = Image.open(os.path.join(train_folder, img_id + '.jpg'))
-            img_arr = np.asarray(img.resize((60, 50)))/255.0
+            img_arr = np.asarray(img.resize((h, w)))/255.0
             train_data.append(img_arr)
             train_labels.append(int(row.get('diagnosis')))
 
             i += 1
-            if i>200:
+            if i>=200:
                 break
 
     print('Training data is successfully loaded!')
@@ -87,12 +90,12 @@ def get_aptos(args, root):
             img_id = row.get('id_code')
             test_folder = os.path.join(aptos_dir, 'test_images')
             img = Image.open(os.path.join(test_folder, img_id + '.jpg'))
-            img_arr = np.asarray(img.resize((60, 50)))/255.0
+            img_arr = np.asarray(img.resize((h, w)))/255.0
             test_data.append(img_arr)
             test_labels.append(0)
 
             i += 1
-            if i>200:
+            if i>=200:
                 break
 
     test_dataset = APTOS_SSL(test_data, test_labels, None, transform=transform_val)
