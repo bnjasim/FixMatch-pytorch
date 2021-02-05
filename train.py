@@ -299,7 +299,7 @@ def main():
     logger.info(f"  Total optimization steps = {args.total_steps}")
 
     model.zero_grad()
-    train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
+    # train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
           model, optimizer, ema_model, scheduler, writer)
 
 

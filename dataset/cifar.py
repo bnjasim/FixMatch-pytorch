@@ -10,12 +10,47 @@ from .randaugment import RandAugmentMC
 
 logger = logging.getLogger(__name__)
 
+# computed the following from the training data
+aptos_mean = (0.46144922, 0.24728629, 0.08075682)
+aptos_std = (0.24772373, 0.13744962, 0.0797987)
 cifar10_mean = (0.4914, 0.4822, 0.4465)
 cifar10_std = (0.2471, 0.2435, 0.2616)
 cifar100_mean = (0.5071, 0.4867, 0.4408)
 cifar100_std = (0.2675, 0.2565, 0.2761)
 normal_mean = (0.5, 0.5, 0.5)
 normal_std = (0.5, 0.5, 0.5)
+
+
+def get_aptos(args, root):
+    transform_labeled = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomCrop(size=(180, 150),
+                              padding=int(64*0.125),
+                              padding_mode='reflect'),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=aptos_mean, std=aptos_std)
+    ])
+    transform_val = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean=aptos_mean, std=aptos_std)
+    ])
+    # base_dataset = datasets.CIFAR10(root, train=True, download=True)
+
+    train_labeled_idxs, train_unlabeled_idxs = x_u_split(
+        args, base_dataset.targets)
+
+    train_labeled_dataset = CIFAR10SSL(
+        root, train_labeled_idxs, train=True,
+        transform=transform_labeled)
+
+    train_unlabeled_dataset = CIFAR10SSL(
+        root, train_unlabeled_idxs, train=True,
+        transform=TransformFixMatch(mean=cifar10_mean, std=cifar10_std))
+
+    test_dataset = datasets.CIFAR10(
+        root, train=False, transform=transform_val, download=False)
+
+    return train_labeled_dataset, train_unlabeled_dataset, test_dataset
 
 
 def get_cifar10(args, root):
@@ -179,4 +214,5 @@ class CIFAR100SSL(datasets.CIFAR100):
 
 
 DATASET_GETTERS = {'cifar10': get_cifar10,
-                   'cifar100': get_cifar100}
+                   'cifar100': get_cifar100,
+                   'aptos': get_aptos}
