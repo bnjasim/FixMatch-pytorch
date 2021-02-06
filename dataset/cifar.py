@@ -61,7 +61,7 @@ def get_aptos(args, root):
             img_id = row.get('id_code')
             train_folder = os.path.join(aptos_dir, 'train_images')
             img = Image.open(os.path.join(train_folder, img_id + '.jpg'))
-            img_arr = np.asarray(img.resize((h, w)))/255.0
+            img_arr = np.asarray(img.resize((h, w)))
             train_data.append(img_arr)
             train_labels.append(int(row.get('diagnosis')))
 
@@ -91,7 +91,7 @@ def get_aptos(args, root):
             img_id = row.get('id_code')
             test_folder = os.path.join(aptos_dir, 'test_images')
             img = Image.open(os.path.join(test_folder, img_id + '.jpg'))
-            img_arr = np.asarray(img.resize((h, w)))/255.0
+            img_arr = np.asarray(img.resize((h, w)))
             test_data.append(img_arr)
             test_labels.append(0)
 
@@ -251,12 +251,11 @@ class APTOS_SSL(object):
     def __getitem__(self, index):
         img, target = self.data[index], self.targets[index]
         # img = Image.fromarray(img)
-        img = Image.fromarray((img * 255).astype(np.uint8))
+        img = Image.fromarray((img))
 
         if self.transform is not None:
             img = self.transform(img)
 
-        img = np.asarray(img/255.0)
         return img, target
 
     def __len__(self):
