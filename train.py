@@ -215,7 +215,9 @@ def main():
     labeled_dataset, unlabeled_dataset, test_dataset = DATASET_GETTERS[args.dataset](
         args, './data')
 
-    print('Data read successfully!')
+
+    print('size of labeled dataset: ' + str(labeled_dataset.data.shape))
+    print('size of unlabeled dataset: ' + str(unlabeled_dataset.data.shape))
 
     train_sampler = RandomSampler if args.local_rank == -1 else DistributedSampler
 
@@ -226,12 +228,16 @@ def main():
         num_workers=args.num_workers,
         drop_last=True)
 
+    # print("length of labeled train loader = " + str(len(labeled_trainloader)))
+
     unlabeled_trainloader = DataLoader(
         unlabeled_dataset,
         sampler=train_sampler(unlabeled_dataset),
         batch_size=args.batch_size*args.mu,
         num_workers=args.num_workers,
         drop_last=True)
+
+    # print("length of unlabeled train loader = " + str(len(unlabeled_trainloader)))
 
     test_loader = DataLoader(
         test_dataset,
@@ -335,6 +341,7 @@ def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
                 inputs_x, targets_x = labeled_iter.next()
 
             try:
+                # print("\n\nlength of unlabeled iter = " + str(len(unlabeled_iter)))
                 (inputs_u_w, inputs_u_s), _ = unlabeled_iter.next()
             except:
                 unlabeled_iter = iter(unlabeled_trainloader)
@@ -342,6 +349,9 @@ def train(args, labeled_trainloader, unlabeled_trainloader, test_loader,
 
             data_time.update(time.time() - end)
             batch_size = inputs_x.shape[0]
+            # print("size of inputs_x: " + str(inputs_x.shape))
+            # print("size of inputs_u_w: " + str(inputs_u_w.shape))
+            # print("size of inputs_u_s: " + str(inputs_u_s.shape))
             inputs = interleave(
                 torch.cat((inputs_x, inputs_u_w, inputs_u_s)), 2*args.mu+1).to(args.device)
             targets_x = targets_x.to(args.device)

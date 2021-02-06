@@ -32,14 +32,14 @@ normal_mean = (0.5, 0.5, 0.5)
 normal_std = (0.5, 0.5, 0.5)
 
 # Resize Image
-w = 60
-h = 50
+w = 180
+h = 150
 
 
 def get_aptos(args, root):
     transform_labeled = transforms.Compose([
         transforms.RandomHorizontalFlip(),
-        transforms.RandomCrop(size=(w, h),
+        transforms.RandomCrop(size=(h, w),
                               padding=int(64*0.125),
                               padding_mode='reflect'),
         transforms.ToTensor(),
@@ -53,7 +53,7 @@ def get_aptos(args, root):
     # Read the aptos training data
     train_data = []
     train_labels = []
-    i = 0
+    
     with open(os.path.join(aptos_dir, 'train_labels.csv')) as csv_file:
         reader = csv.DictReader(csv_file, delimiter=',')
 
@@ -65,9 +65,7 @@ def get_aptos(args, root):
             train_data.append(img_arr)
             train_labels.append(int(row.get('diagnosis')))
 
-            i += 1
-            if i>=200:
-                break
+           
 
     print('Training data is successfully loaded!')
 
@@ -83,7 +81,7 @@ def get_aptos(args, root):
     # Read the aptos test data
     test_data = []
     test_labels = []
-    i = 0
+    
     with open(os.path.join(aptos_dir, 'test_images.csv')) as csv_file:
         reader = csv.DictReader(csv_file, delimiter=',')
 
@@ -95,9 +93,7 @@ def get_aptos(args, root):
             test_data.append(img_arr)
             test_labels.append(0)
 
-            i += 1
-            if i>=200:
-                break
+            
 
     test_dataset = APTOS_SSL(test_data, test_labels, None, transform=transform_val)
     print('Testing data is successfully loaded!')
