@@ -32,8 +32,8 @@ normal_mean = (0.5, 0.5, 0.5)
 normal_std = (0.5, 0.5, 0.5)
 
 # Resize Image
-w = 180
-h = 150
+w = 100
+h = 80
 
 
 def get_aptos(args, root):
@@ -61,7 +61,7 @@ def get_aptos(args, root):
             img_id = row.get('id_code')
             train_folder = os.path.join(aptos_dir, 'train_images')
             img = Image.open(os.path.join(train_folder, img_id + '.jpg'))
-            img_arr = np.asarray(img.resize((h, w)))
+            img_arr = np.asarray(img.resize((w, h)))
             train_data.append(img_arr)
             train_labels.append(int(row.get('diagnosis')))
 
@@ -89,7 +89,7 @@ def get_aptos(args, root):
             img_id = row.get('id_code')
             test_folder = os.path.join(aptos_dir, 'test_images')
             img = Image.open(os.path.join(test_folder, img_id + '.jpg'))
-            img_arr = np.asarray(img.resize((h, w)))
+            img_arr = np.asarray(img.resize((w, h)))
             test_data.append(img_arr)
             test_labels.append(0)
 
