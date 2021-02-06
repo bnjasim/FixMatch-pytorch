@@ -32,13 +32,14 @@ normal_mean = (0.5, 0.5, 0.5)
 normal_std = (0.5, 0.5, 0.5)
 
 # Resize Image
-h = 50
 w = 60
+h = 50
+
 
 def get_aptos(args, root):
     transform_labeled = transforms.Compose([
         transforms.RandomHorizontalFlip(),
-        transforms.RandomCrop(size=(h, w),
+        transforms.RandomCrop(size=(w, h),
                               padding=int(64*0.125),
                               padding_mode='reflect'),
         transforms.ToTensor(),
@@ -217,12 +218,12 @@ class TransformFixMatch2(object):
     def __init__(self, mean, std):
         self.weak = transforms.Compose([
             transforms.RandomHorizontalFlip(),
-            transforms.RandomCrop(size=(60, 50),
+            transforms.RandomCrop(size=(h, w),
                                   padding=int(64*0.125),
                                   padding_mode='reflect')])
         self.strong = transforms.Compose([
             transforms.RandomHorizontalFlip(),
-            transforms.RandomCrop(size=(60, 50),
+            transforms.RandomCrop(size=(h, w),
                                   padding=int(64*0.125),
                                   padding_mode='reflect'),
             RandAugmentMC(n=2, m=10)])
