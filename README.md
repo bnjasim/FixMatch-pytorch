@@ -2,8 +2,9 @@
 This is an unofficial PyTorch implementation of [FixMatch: Simplifying Semi-Supervised Learning with Consistency and Confidence](https://arxiv.org/abs/2001.07685).
 The official Tensorflow implementation is [here](https://github.com/google-research/fixmatch).
 
+## Update
 This code is only available in FixMatch (RandAugment).
-Now only experiments on CIFAR-10 and CIFAR-100 are available.
+Now in addition to experiments on CIFAR-10 and CIFAR-99 it supports APTOS dataset (https://www.kaggle.com/benjaminwarner/resized-2015-2019-blindness-detection-images) as well.
 
 ## Requirements
 - Python 3.6+
@@ -26,6 +27,12 @@ python train.py --dataset cifar10 --num-labeled 4000 --arch wideresnet --batch-s
 Train the model by 10000 labeled data of CIFAR-100 dataset by using DistributedDataParallel:
 ```
 python -m torch.distributed.launch --nproc_per_node 4 ./train.py --dataset cifar100 --num-labeled 10000 --arch wideresnet --batch-size 16 --lr 0.03 --wdecay 0.001 --expand-labels --seed 5 --out results/cifar100@10000
+```
+
+Train the model by 1000 labeled data of APTOS dataset by 
+
+```
+python train.py --dataset aptos --num-labeled 1000 --arch wideresnet --batch-size 32 --lr 0.03 --seed 5 --total-steps 30000 --eval-step 1000 --mu 5 --out results/aptos@1000
 ```
 
 ### Monitoring training progress
