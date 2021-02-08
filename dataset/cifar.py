@@ -65,7 +65,13 @@ def get_aptos(args, root):
             train_data.append(img_arr)
             train_labels.append(int(row.get('diagnosis')))
 
-           
+    # Copy last 500 images of training data as test data
+    test_data = train_data[-500:]
+    test_labels = train_labels[-500:]
+
+    # Update train data accordingly
+    train_data = train_data[:-500]
+    train_labels = train_labels[:-500]           
 
     print('Training data is successfully loaded!')
 
@@ -73,30 +79,25 @@ def get_aptos(args, root):
 
     train_labeled_dataset = APTOS_SSL(train_data, train_labels, train_labeled_idxs,  transform=transform_labeled)
 
-    print('Supervised and semisupervised split!')
-
     train_unlabeled_dataset = APTOS_SSL(train_data, train_labels, train_unlabeled_idxs, 
         transform=TransformFixMatch2(mean=aptos_mean, std=aptos_std))
 
     # Read the aptos test data
-    test_data = []
-    test_labels = []
+    # test_data = []
+    # test_labels = []
     
-    with open(os.path.join(aptos_dir, 'test_images.csv')) as csv_file:
-        reader = csv.DictReader(csv_file, delimiter=',')
+    # with open(os.path.join(aptos_dir, 'test_images.csv')) as csv_file:
+    #    reader = csv.DictReader(csv_file, delimiter=',')
 
-        for row in reader:
-            img_id = row.get('id_code')
-            test_folder = os.path.join(aptos_dir, 'test_images')
-            img = Image.open(os.path.join(test_folder, img_id + '.jpg'))
-            img_arr = np.asarray(img.resize((w, h)))
-            test_data.append(img_arr)
-            test_labels.append(0)
-
-            
+    #    for row in reader:
+    #        img_id = row.get('id_code')
+    #        test_folder = os.path.join(aptos_dir, 'test_images')
+    #        img = Image.open(os.path.join(test_folder, img_id + '.jpg'))
+    #        img_arr = np.asarray(img.resize((w, h)))
+    #        test_data.append(img_arr)
+    #        test_labels.append(0)      
 
     test_dataset = APTOS_SSL(test_data, test_labels, None, transform=transform_val)
-    print('Testing data is successfully loaded!')
 
     return train_labeled_dataset, train_unlabeled_dataset, test_dataset
 
